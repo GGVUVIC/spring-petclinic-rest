@@ -22,6 +22,7 @@ import org.springframework.samples.petclinic.model.*;
 import org.springframework.samples.petclinic.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDate;
 
 import java.util.Collection;
 import java.util.List;
@@ -88,6 +89,22 @@ public class ClinicServiceImpl implements ClinicService {
     @Transactional
     public void deleteVisit(Visit visit) throws DataAccessException {
         visitRepository.delete(visit);
+    }
+
+    // 🔽 AQUÍ HI VA LA NOVA LÒGICA DE NEGOCI
+    @Override
+    @Transactional
+    public void saveVisit(Visit visit) throws DataAccessException {
+
+        if (visit.getDate() == null) {
+            throw new IllegalArgumentException("Visit date must not be null");
+        }
+
+        if (visit.getDate().isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Visit date cannot be in the past");
+        }
+
+        visitRepository.save(visit);
     }
 
     @Override
@@ -197,13 +214,6 @@ public class ClinicServiceImpl implements ClinicService {
     public void savePet(Pet pet) throws DataAccessException {
         pet.setType(findPetTypeById(pet.getType().getId()));
         petRepository.save(pet);
-    }
-
-    @Override
-    @Transactional
-    public void saveVisit(Visit visit) throws DataAccessException {
-        visitRepository.save(visit);
-
     }
 
     @Override
